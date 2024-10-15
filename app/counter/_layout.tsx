@@ -11,7 +11,7 @@ export default function Layout(){
               return( 
               <Link href="/counter/history" asChild>
                 <Pressable hitSlop={20}>
-                   <MaterialIcons name="history" size={32} color={theme.colorGrey} />
+                   <MaterialIcons name="history" size={30} color={theme.colorGrey} />
                  </Pressable>
                </Link>
               )
