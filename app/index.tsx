@@ -1,5 +1,3 @@
-
-import { Link } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { ShoppingListItem } from '../components/ShoppingListItem';
 
@@ -8,7 +6,6 @@ export default function App() {
   
   return (
     <View style={styles.container}>
-      <Link href={"/counter"} style={{textAlign:"center",marginBottom:18,fontSize:24}}>Go to Counter</Link>
       <ShoppingListItem name='coffee' isCompleted={true}/>
       <ShoppingListItem name='tea'/>
       <ShoppingListItem name='sugar'/>
