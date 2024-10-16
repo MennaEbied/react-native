@@ -1,12 +1,17 @@
-import { View, TouchableOpacity ,Text , StyleSheet , Alert } from "react-native";
+import {  TouchableOpacity ,Text , StyleSheet , Alert, Pressable,View } from "react-native";
 import { theme } from "../theme";
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Entypo from '@expo/vector-icons/Entypo';
+
+
 type Props={
     name:string;
     isCompleted?:boolean;
+    onDelete:()=>void;
+    onToggleComplete:()=>void;
 };
 
-export function ShoppingListItem({name,isCompleted}:Props){
+export function ShoppingListItem({name,isCompleted,onDelete,onToggleComplete}:Props){
     const handleDelete=()=>{
         Alert.alert(
         `Are you sure you want to delete ${name}?`,
@@ -14,7 +19,7 @@ export function ShoppingListItem({name,isCompleted}:Props){
         [
           {
             text:"Yes",
-            onPress:()=>console.log("deleting"),
+            onPress:()=>onDelete(),
             style:"destructive"
           },
           {
@@ -25,16 +30,27 @@ export function ShoppingListItem({name,isCompleted}:Props){
         );
       };
     return (
-        <View
-       style={[styles.itemContainer,isCompleted?styles.completedContainer:undefined,
-       ]}>
-      <Text 
-      style={[
-        styles.itemText,
-        isCompleted?styles.completedText:undefined
-        ]}>
-            {name}
+        <Pressable
+       style={[
+        styles.itemContainer,
+        isCompleted?styles.completedContainer:undefined,
+         ]}
+         onPress={onToggleComplete}
+       >
+      <View style={styles.row}>
+       <Entypo
+        name={isCompleted?"check":"circle"} 
+        size={24} 
+        color={isCompleted?theme.colorGrey:theme.colorCerulean} 
+       />
+      < Text 
+        style={[
+          styles.itemText,
+          isCompleted?styles.completedText:undefined
+          ]}>
+          {name}
         </Text>
+      </View>
       <TouchableOpacity 
             onPress={handleDelete} 
             activeOpacity={0.8} 
@@ -45,7 +61,7 @@ export function ShoppingListItem({name,isCompleted}:Props){
            color={isCompleted?theme.colorGrey:theme.colorRed} 
            />
       </TouchableOpacity>
-      </View>
+      </Pressable>
     )
 }
 const styles = StyleSheet.create({
@@ -64,11 +80,16 @@ const styles = StyleSheet.create({
     },
     itemText:{
       fontSize:18,
-      fontWeight:"200"
+      fontWeight:"200",
+      flex:1,
     },
     completedText:{
         textDecorationLine:"line-through",
         textDecorationColor:theme.colorGrey,
     },
-  
+    row:{
+      flexDirection:"row",
+      gap:4,
+      flex:1,
+    }
   });
