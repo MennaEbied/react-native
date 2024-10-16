@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, ScrollView } from 'react-native';
+import { StyleSheet, TextInput, ScrollView ,FlatList, View,Text } from 'react-native';
 import { ShoppingListItem } from '../components/ShoppingListItem';
 import { theme } from '../theme';
 
@@ -7,15 +7,11 @@ type shoppingListItemType={
   id:string;
   name:string;
 }
-const initialList:shoppingListItemType[]=[
-   {id:"1",name:"coffee"},
-   {id:"2",name:"tea"},
-   {id:"3",name:"sugar"},
 
-  ]
+ 
 export default function App() {
   const [shoppingList,setShoppingList]=
-  useState<shoppingListItemType[]>(initialList)
+  useState<shoppingListItemType[]>([])
   const [value,setValue]=useState("");
   const handleSubmit=()=>{
     if(value){
@@ -29,12 +25,18 @@ export default function App() {
   }
   
   return (
-    <ScrollView 
+    <FlatList
+      data={shoppingList}
       style={styles.container} 
       contentContainerStyle={styles.contentContainer}
       stickyHeaderIndices={[0]}
-    >
-      <TextInput 
+      ListEmptyComponent={
+       < View style={styles.listEmptyContainer}>
+        <Text>Your Shopping List is empty</Text>
+       </View>
+      }
+      ListHeaderComponent={
+        <TextInput 
         placeholder='E.g coffee' 
         style={styles.textInput}
         value={value}
@@ -42,10 +44,12 @@ export default function App() {
         returnKeyType="done"
         onSubmitEditing={handleSubmit}
       />
-      {shoppingList.map(item=>(
-        <ShoppingListItem name={item.name} key={item.id}/>
-      ))}
-    </ScrollView>
+   }
+      renderItem={({item})=>{
+        return <ShoppingListItem name={item.name}/>
+
+      }}
+    />
   );
 }
 
@@ -68,5 +72,10 @@ const styles = StyleSheet.create({
     borderRadius:50,
     backgroundColor:theme.colorWhite,
 
+  },
+  listEmptyContainer:{
+    justifyContent:"center",
+    alignItems:"center",
+    marginVertical:18,
   }
 });
