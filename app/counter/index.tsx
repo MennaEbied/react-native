@@ -19,14 +19,14 @@ import { getFromStorage, saveToStorage } from "../../utils/storage";
 
 const frequency=10*1000;
 
-const countdownStorageKey="taskley-counter";
+export const countdownStorageKey="taskley-counter";
 
-type PersistedCountdownState={
+ export type PersistedCountdownState={
   currentNotificationId:string | undefined;
   completedAtTimestamp:number [];
 };
 
-type CountddownStatus={
+type CountdownStatus={
   isOverdue:boolean;
   distance:Duration;
 }
@@ -36,7 +36,7 @@ export default function CounterScreen() {
 
   const[countdownState,setCountdownState]=useState<PersistedCountdownState>()
 
-  const[status,setStatus]=useState<CountddownStatus>({
+  const[status,setStatus]=useState<CountdownStatus>({
     isOverdue:false,
     distance:{},
   })
