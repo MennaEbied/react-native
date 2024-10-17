@@ -1,14 +1,30 @@
-import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { 
+  Text,
+   View,
+   StyleSheet, 
+   TouchableOpacity, 
+   Alert, 
+   ActivityIndicator 
+  } from "react-native";
 import {useEffect, useState} from "react";
 import { theme } from "../../theme";
 import { registerForPushNotificationsAsync } from "../../utils/registerForPushNotificationsAsync";
 import * as Notifications from "expo-notifications";
 import { isBefore, Duration, intervalToDuration  } from "date-fns";
 import { TimeSegment } from "../../components/TimeSegment";
+import { getFromStorage, saveToStorage } from "../../utils/storage";
 
 
-//10 seconds from now
-const timestamp=Date.now()+10*1000;
+
+
+const frequency=10*1000;
+
+const countdownStorageKey="taskley-counter";
+
+type PersistedCountdownState={
+  currentNotificationId:string | undefined;
+  completedAtTimestamp:number [];
+};
 
 type CountddownStatus={
   isOverdue:boolean;
@@ -16,14 +32,37 @@ type CountddownStatus={
 }
 
 export default function CounterScreen() {
+  const[isLoading,setIsLoading]=useState(true);
+
+  const[countdownState,setCountdownState]=useState<PersistedCountdownState>()
+
   const[status,setStatus]=useState<CountddownStatus>({
     isOverdue:false,
     distance:{},
   })
+
+  const lastCompletedTimestamp= countdownState?.completedAtTimestamp[0]
+
+  useEffect(()=>{
+    const init =async()=>{
+      const value=await getFromStorage(countdownStorageKey)
+      setCountdownState(value)
+    }
+    init();
+  },[])
   
 
   useEffect(()=>{
     const intervalId=setInterval(()=>{
+      const timestamp= lastCompletedTimestamp 
+      ? lastCompletedTimestamp + frequency 
+      :Date.now();
+
+      if(lastCompletedTimestamp){
+        setIsLoading(false);
+      }
+
+
       const isOverdue=isBefore(timestamp,Date.now());
       const distance=intervalToDuration(
         isOverdue
@@ -38,17 +77,18 @@ export default function CounterScreen() {
     return ()=>{
       clearInterval(intervalId);
     };
-  },[]);
+  },[lastCompletedTimestamp]);
 
   const scheduleNotification = async () => {
+    let pushNotificationId;
       const result = await registerForPushNotificationsAsync();
       if(result==="granted"){
-        await Notifications.scheduleNotificationAsync({
+        pushNotificationId= await Notifications.scheduleNotificationAsync({
           content:{
-            title:"I'm a notification from your app"
+            title:"The thing is due!"
           }, 
           trigger:{
-            seconds:5,
+            seconds:frequency/1000,
           }
         })
       }else{
@@ -57,8 +97,28 @@ export default function CounterScreen() {
           "Enable the notification permission for expo go in settings"
           )
       }
-  
+      if(countdownState?.currentNotificationId){
+        await Notifications.cancelScheduledNotificationAsync(
+          countdownState?.currentNotificationId,
+        )
+      }
+      const newCountdownState: PersistedCountdownState={
+        currentNotificationId:pushNotificationId,
+        completedAtTimestamp: countdownState
+        ? [Date.now(),...countdownState.completedAtTimestamp]
+        : [Date.now()]
+      }
+      setCountdownState(newCountdownState);
+      await saveToStorage(countdownStorageKey,newCountdownState)
     };
+    if(isLoading){
+      return(
+        <View style={styles.activityIndicatorContainer}>
+          <ActivityIndicator />
+        </View>
+      )
+    }
+    
 
   return (
     <View 
@@ -69,7 +129,7 @@ export default function CounterScreen() {
       >
 
       {status.isOverdue?(
-        <Text style={[styles.heading,styles.whiteText]}>Tthing overdue by</Text>
+        <Text style={[styles.heading,styles.whiteText]}>Thing overdue by</Text>
       ): (
         <Text style={styles.heading}>Thing due in ...</Text>
       )}
@@ -142,5 +202,11 @@ const styles = StyleSheet.create({
   },
   whiteText:{
     color:theme.colorWhite,
+  },
+  activityIndicatorContainer:{
+    backgroundColor:theme.colorWhite,
+    justifyContent:"center",
+    alignItems:"center",
+    flex:1,
   }
 });
